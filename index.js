@@ -4,10 +4,6 @@ const httpErrors = require('http-errors')
 const pino = require('pino')
 const pinoHttp = require('pino-http')
 
-if (process.env.NODE_ENV !== 'production') {
-  require('dotenv').config();
-}
-
 module.exports = function main (options, cb) {
   // Set default options
   const ready = cb || function () {}

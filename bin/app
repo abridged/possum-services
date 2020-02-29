@@ -1,8 +1,12 @@
 #! /usr/bin/env node
 'use strict'
 
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+
 // Pass configuration to application
 require('../')({
-  port: 8000,
+  port: process.env.PORT || 8000,
   host: 'localhost'
 })
