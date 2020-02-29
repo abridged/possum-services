@@ -4,6 +4,10 @@ const httpErrors = require('http-errors')
 const pino = require('pino')
 const pinoHttp = require('pino-http')
 
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+
 module.exports = function main (options, cb) {
   // Set default options
   const ready = cb || function () {}
@@ -46,7 +50,7 @@ module.exports = function main (options, cb) {
   // Common middleware
   // app.use(/* ... */)
   app.use(pinoHttp({ logger }))
-      
+
   // Register routes
   // @NOTE: require here because this ensures that even syntax errors
   // or other startup related errors are caught logged and debuggable.
