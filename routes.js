@@ -1,9 +1,8 @@
-'use strict'
-const simple = require('./routes/simple')
-const configured = require('./routes/configured')
+'use strict';
+const home = require('./routes/home');
+const { proposals } = require('./routes/dao');
 
-module.exports = function (app, opts) {
-  // Setup routes, middleware, and handlers
-  app.get('/', simple)
-  app.get('/configured', configured(opts))
-}
+module.exports = function (app) {
+  app.get('/', home);
+  app.get('/proposals', proposals);
+};

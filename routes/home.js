@@ -1,7 +1,7 @@
-'use strict'
+'use strict';
 
 module.exports = function (req, res) {
   res.json({
     hello: 'world!'
   })
-}
+};
