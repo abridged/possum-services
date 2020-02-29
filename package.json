@@ -17,6 +17,8 @@
     "express": "^4.17.1",
     "http-errors": "^1.7.3",
     "if-env": "^1.0.4",
+    "lodash.get": "^4.4.2",
+    "lodash.isempty": "^4.4.0",
     "pino": "^5.17.0",
     "pino-http": "^4.4.0",
     "pino-pretty": "^3.6.0"
