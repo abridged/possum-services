@@ -6,6 +6,8 @@ const get = require('lodash.get');
 const {
   USERS_TABLE_NAME,
   PROPOSALS_TABLE_NAME,
+  GRANTS_TABLE_NAME,
+  GRANT_LIKES_TABLE_NAME,
 } = require('../config');
 
 const proposals = async (req, res) => {
@@ -17,11 +19,12 @@ const proposals = async (req, res) => {
 
     let items;
     if (userAddress) {
-      const userInfo = await UsersTable.list({
+      // TODO: could be extracted to the middleware
+      const userInfoQuery = await UsersTable.list({
         filterByFormula: `account_address='${userAddress}'`
       });
 
-      if (isEmpty(userInfo.records)) {
+      if (isEmpty(userInfoQuery.records)) {
         return res.status(404).json({ error: 'User not found' });
       }
 
@@ -37,35 +40,67 @@ const proposals = async (req, res) => {
 
 const likeProject = async (req, res) => {
   // TODO: validate input params
-  const ethAddress = req.body.ethAddress;
-  const grantId = req.body.grantId;
-  const numLikes = req.body.numLikes;
+  const params = get(req, 'body', {});
+  const { userAddress } = params;
+  const numLikes = parseInt(params.numLikes || 0, 10);
+  const grantId = parseInt(params.grantId || 0, 10);
 
   try {
-    const GrantLikesTable = storage.getTable('grant_likes');
+    const GrantsTable = storage.getTable(GRANTS_TABLE_NAME);
+    const GrantLikesTable = storage.getTable(GRANT_LIKES_TABLE_NAME);
     const UsersTable = storage.getTable(USERS_TABLE_NAME);
 
-    const userInfo = await ProposalsTable.list({
-      filterByFormula: `account_address='${ethAddress}'`
+    // validate user
+    const userInfoQuery = await UsersTable.list({
+      filterByFormula: `account_address='${userAddress}'`
     });
 
+    if (isEmpty(userInfoQuery.records)) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
+    const userInfo = get(userInfoQuery, 'records[0]', {});
 
-    const items = await ProposalsTable.list({
-      filterByFormula: `user_id='aloksstiwari'`
+    // validate grant
+    const grantInfoQuery = await GrantsTable.list({
+      filterByFormula: `grant_id='${grantId}'`
     });
 
+    if (isEmpty(grantInfoQuery.records)) {
+      return res.status(404).json({ error: 'Grant not found' });
+    }
 
-    const status = await GrantLikesTable.create({
-      ethAddress,
-      grantId,
-      numLikes,
+    const grantInfo = get(grantInfoQuery, 'records[0]', {});
+
+    // find if user already submitted his likes
+    const existingLikesQuery = await GrantLikesTable.list({
+      filterByFormula: `AND(
+          grant_id='${grantInfo.fields.grant_id}',
+          user_id='${userInfo.fields.user_id}'
+        )`
     });
+
+    let status;
+    if (isEmpty(existingLikesQuery.records)) {
+      status = await GrantLikesTable.create({
+        fields: {
+          user_id: [userInfo.id],
+          grant_id: [grantInfo.id],
+          num_likes: numLikes,
+        }
+      });
+    } else {
+      const existingLikes = get(existingLikesQuery, 'records[0]', {});
+      status = await GrantLikesTable.update(existingLikes.id, {
+        num_likes: numLikes,
+      });
+    }
+
     res.json({
       status,
     });
   } catch (e) {
-    res.status(400).json({ e });
+    res.status(400).json(e);
   }
 };
 
