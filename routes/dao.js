@@ -127,18 +127,20 @@ const likeProject = async (req, res) => {
 
     let status;
     if (isEmpty(existingLikesQuery.records)) {
-      status = await GrantLikesTable.create({
+      await GrantLikesTable.create({
         fields: {
           user_id: [userInfo.id],
           grant_id: [grantInfo.id],
           num_likes: numLikes,
         }
       });
+      status = "Created";
     } else {
       const existingLikes = get(existingLikesQuery, 'records[0]', {});
-      status = await GrantLikesTable.update(existingLikes.id, {
+      await GrantLikesTable.update(existingLikes.id, {
         num_likes: numLikes,
       });
+      status = "Updated";
     }
 
     res.json({
