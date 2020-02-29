@@ -50,7 +50,6 @@ const proposals = async (req, res) => {
           [like.id]: like.fields.num_likes,
         }
       }, {});
-      console.log(userLikes);
 
       items = items.map(item => {
         let liked = false;
@@ -70,6 +69,14 @@ const proposals = async (req, res) => {
         };
       });
     }
+
+    items = items.map(item => {
+      if (item.grant_likes) {
+        delete item.grant_likes;
+      }
+      return { ...item };
+    });
+
     res.json(items);
   } catch (e) {
     res.status(400).json(e);
