@@ -86,7 +86,7 @@ const proposals = async (req, res) => {
 const likeProject = async (req, res) => {
   // TODO: validate input params
   const params = get(req, 'body', {});
-  const { userAddress } = params;
+  const { userAddress, increment } = params;
   const numLikes = parseInt(params.numLikes || 0, 10);
   const grantId = parseInt(params.grantId || 0, 10);
 
@@ -137,8 +137,9 @@ const likeProject = async (req, res) => {
       status = "Created";
     } else {
       const existingLikes = get(existingLikesQuery, 'records[0]', {});
+      const setNumLikes = increment ? numLikes + parseInt(existingLikes.fields.num_likes, 10) : numLikes;
       await GrantLikesTable.update(existingLikes.id, {
-        num_likes: numLikes,
+        num_likes: setNumLikes,
       });
       status = "Updated";
     }
